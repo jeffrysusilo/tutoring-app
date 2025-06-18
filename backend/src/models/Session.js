@@ -23,7 +23,12 @@ const Session = sequelize.define('Session', {
   notes: {
     type: DataTypes.TEXT,
     allowNull: true,
-  }
+  },
+  is_recurring: {
+  type: DataTypes.BOOLEAN,
+  allowNull: false,
+  defaultValue: false,
+},
 });
 
 // Relasi

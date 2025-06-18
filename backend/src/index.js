@@ -11,8 +11,15 @@ const Tutor = require('./models/Tutor');
 
 const Session = require('./models/Session');
 
+const { Op } = require('sequelize'); 
+
+const dayjs = require('dayjs');
 
 app.use(express.json());
+
+const sessionRoutes = require('./routes/sessions');
+app.use('/sessions', sessionRoutes);
+
 
 app.get('/', (req, res) => {
   res.send('API berjalan 🚀');
@@ -162,8 +169,6 @@ app.put('/sessions/:id/reschedule', async (req, res) => {
   }
 });
 
-
-
 app.put('/sessions/:id', async (req, res) => {
   try {
     const session = await Session.findByPk(req.params.id);
@@ -187,4 +192,77 @@ app.delete('/sessions/:id', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+app.get('/sessions/available-slots', async (req, res) => {
+  const { tutorId, studentId, date } = req.query;
+
+  if (!tutorId || !studentId || !date) {
+    return res.status(400).json({ error: 'tutorId, studentId, dan date wajib diisi' });
+  }
+
+  const AVAILABLE_TIME_SLOTS = ['10.00', '13.00', '15.00', '18.00'];
+
+  try {
+    const sessions = await Session.findAll({
+      where: {
+        date,
+        [Op.or]: [
+          { tutorId },
+          { studentId }
+        ]
+      }
+    });
+
+    const takenSlots = sessions.map(s => s.time);
+    const availableSlots = AVAILABLE_TIME_SLOTS.filter(slot => !takenSlots.includes(slot));
+
+    res.json({ availableSlots });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/sessions/available-slots/suggestions', async (req, res) => {
+  const { tutorId, studentId, days = 7 } = req.query;
+
+  if (!tutorId || !studentId) {
+    return res.status(400).json({ error: 'tutorId dan studentId wajib diisi' });
+  }
+
+  const AVAILABLE_TIME_SLOTS = ['10.00', '13.00', '15.00', '18.00'];
+  const suggestions = [];
+
+  try {
+    for (let i = 0; i < parseInt(days); i++) {
+      const date = dayjs().add(i, 'day').format('YYYY-MM-DD');
+
+      const sessions = await Session.findAll({
+        where: {
+          date,
+          [Op.or]: [
+            { tutorId },
+            { studentId }
+          ]
+        }
+      });
+
+      const taken = sessions.map(s => s.time);
+      const available = AVAILABLE_TIME_SLOTS.filter(slot => !taken.includes(slot));
+
+      if (available.length > 0) {
+        suggestions.push({ date, slots: available });
+      }
+    }
+
+    if (suggestions.length === 0) {
+      return res.status(404).json({ message: 'Tidak ada slot kosong selama ' + days + ' hari ke depan' });
+    }
+
+    res.json({ suggestions });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
