@@ -6,5 +6,7 @@ router.post('/', tutorController.createTutor);
 router.get('/', tutorController.getAllTutors);
 router.put('/:id', tutorController.updateTutor);
 router.delete('/:id', tutorController.deleteTutor);
+// GET /tutors/:id/report
+router.get('/:id/report', tutorController.getTutorReport);
 
 module.exports = router;

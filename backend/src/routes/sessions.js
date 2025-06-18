@@ -2,8 +2,9 @@ const express = require('express');
 const router = express.Router();
 const sessionController = require('../controllers/sessionController');
 
+
 // CRUD
-router.post('/', sessionController.createSession);
+// router.post('/', sessionController.createSession);
 router.get('/', sessionController.getAllSessions);
 // router.put('/:id', sessionController.updateSession);
 router.delete('/:id', sessionController.deleteSession);
@@ -18,5 +19,8 @@ router.get('/available-slots/suggestions', sessionController.getAvailableSlotSug
 // Recurring
 router.post('/recurring', sessionController.createRecurringSessions);
 router.delete('/recurring', sessionController.deleteRecurringSessions);
+
+// Report
+router.put('/:id/laporan', sessionController.updateLaporanSession);
 
 module.exports = router;

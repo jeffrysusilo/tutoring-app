@@ -2,6 +2,7 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 const Student = require('./Student');
 const Tutor = require('./Tutor');
+const SessionStudent = require('./SessionStudent');
 
 const Session = sequelize.define('Session', {
   date: {
@@ -9,7 +10,7 @@ const Session = sequelize.define('Session', {
     allowNull: false,
   },
   time: {
-    type: DataTypes.STRING, // contoh: '10.00', '13.00'
+    type: DataTypes.STRING,
     allowNull: false,
   },
   class_type: {
@@ -25,18 +26,25 @@ const Session = sequelize.define('Session', {
     allowNull: true,
   },
   is_recurring: {
-  type: DataTypes.BOOLEAN,
-  allowNull: false,
-  defaultValue: false,
-},
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+  },
 });
 
-// Relasi
-Session.belongsTo(Student, { foreignKey: 'studentId' });
-Student.hasMany(Session, { foreignKey: 'studentId' });
+// ✅ Relasi many-to-many (Session <-> Student)
+Session.belongsToMany(Student, {
+  through: SessionStudent,
+  foreignKey: 'sessionId'
+});
 
+Student.belongsToMany(Session, {
+  through: SessionStudent,
+  foreignKey: 'studentId'
+});
+
+// ✅ Relasi one-to-many untuk Tutor (boleh tetap)
 Session.belongsTo(Tutor, { foreignKey: 'tutorId' });
 Tutor.hasMany(Session, { foreignKey: 'tutorId' });
 
 module.exports = Session;
-    
