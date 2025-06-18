@@ -141,7 +141,6 @@ app.delete('/tutors/:id', async (req, res) => {
   }
 });
 
-// Reschedule sesi
 app.put('/sessions/:id/reschedule', async (req, res) => {
   try {
     const { date, time } = req.body;
@@ -163,6 +162,19 @@ app.put('/sessions/:id/reschedule', async (req, res) => {
   }
 });
 
+
+
+app.put('/sessions/:id', async (req, res) => {
+  try {
+    const session = await Session.findByPk(req.params.id);
+    if (!session) return res.status(404).json({ error: 'Session tidak ditemukan' });
+
+    await session.update(req.body);
+    res.json(session);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
 
 app.delete('/sessions/:id', async (req, res) => {
   try {
