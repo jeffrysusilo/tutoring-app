@@ -9,6 +9,9 @@ const Student = require('./models/Student');
 
 const Tutor = require('./models/Tutor');
 
+const Session = require('./models/Session');
+
+
 app.use(express.json());
 
 app.get('/', (req, res) => {
@@ -63,6 +66,28 @@ app.get('/tutors', async (req, res) => {
   try {
     const tutors = await Tutor.findAll();
     res.json(tutors);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Tambah sesi
+app.post('/sessions', async (req, res) => {
+  try {
+    const session = await Session.create(req.body);
+    res.status(201).json(session);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Lihat semua sesi
+app.get('/sessions', async (req, res) => {
+  try {
+    const sessions = await Session.findAll({
+      include: ['Student', 'Tutor']
+    });
+    res.json(sessions);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
