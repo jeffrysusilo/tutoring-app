@@ -1,0 +1,19 @@
+# Node modules
+node_modules/
+
+# Environment variables
+.env
+
+# Log files
+*.log
+
+# Docker build files (opsional)
+docker-compose.override.yml
+
+# DB atau volume (kalau ada)
+*.sqlite
+*.db
+
+# System files
+.DS_Store
+Thumbs.db
