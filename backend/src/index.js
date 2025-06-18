@@ -93,3 +93,86 @@ app.get('/sessions', async (req, res) => {
   }
 });
 
+app.put('/students/:id', async (req, res) => {
+  try {
+    const student = await Student.findByPk(req.params.id);
+    if (!student) return res.status(404).json({ error: 'Student tidak ditemukan' });
+
+    await student.update(req.body);
+    res.json(student);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.delete('/students/:id', async (req, res) => {
+  try {
+    const student = await Student.findByPk(req.params.id);
+    if (!student) return res.status(404).json({ error: 'Student tidak ditemukan' });
+
+    await student.destroy();
+    res.json({ message: 'Student berhasil dihapus' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/tutors/:id', async (req, res) => {
+  try {
+    const tutor = await Tutor.findByPk(req.params.id);
+    if (!tutor) return res.status(404).json({ error: 'Tutor tidak ditemukan' });
+
+    await tutor.update(req.body);
+    res.json(tutor);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.delete('/tutors/:id', async (req, res) => {
+  try {
+    const tutor = await Tutor.findByPk(req.params.id);
+    if (!tutor) return res.status(404).json({ error: 'Tutor tidak ditemukan' });
+
+    await tutor.destroy();
+    res.json({ message: 'Tutor berhasil dihapus' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Reschedule sesi
+app.put('/sessions/:id/reschedule', async (req, res) => {
+  try {
+    const { date, time } = req.body;
+    const session = await Session.findByPk(req.params.id);
+
+    if (!session) {
+      return res.status(404).json({ error: 'Sesi tidak ditemukan' });
+    }
+
+    session.date = date;
+    session.time = time;
+    session.status = 'rescheduled';
+
+    await session.save();
+
+    res.json(session);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+
+app.delete('/sessions/:id', async (req, res) => {
+  try {
+    const session = await Session.findByPk(req.params.id);
+    if (!session) return res.status(404).json({ error: 'Session tidak ditemukan' });
+
+    await session.destroy();
+    res.json({ message: 'Session berhasil dihapus' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
