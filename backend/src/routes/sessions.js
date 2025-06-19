@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const sessionController = require('../controllers/sessionController');
 
-
 // CRUD
 // router.post('/', sessionController.createSession);
 router.get('/', sessionController.getAllSessions);
@@ -22,5 +21,7 @@ router.delete('/recurring', sessionController.deleteRecurringSessions);
 
 // Report
 router.put('/:id/laporan', sessionController.updateLaporanSession);
+
+router.put('/:id/status', updateSessionStatus);
 
 module.exports = router;

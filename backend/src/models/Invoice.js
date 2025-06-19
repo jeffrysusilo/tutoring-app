@@ -3,33 +3,37 @@ const sequelize = require('../config/database');
 const Student = require('./Student');
 
 const Invoice = sequelize.define('Invoice', {
-  due_date: {
-    type: DataTypes.DATEONLY,
-    allowNull: false,
-  },
-  sessions_count: {
+  studentId: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    allowNull: false
+  },
+  total_sessions: {
+    type: DataTypes.INTEGER,
+    allowNull: false
+  },
+  credit: {
+    type: DataTypes.INTEGER,
+    allowNull: false
   },
   price_per_session: {
-    type: DataTypes.DECIMAL(10, 2),
-    allowNull: false,
+    type: DataTypes.INTEGER,
+    allowNull: false
   },
   discount: {
-    type: DataTypes.DECIMAL(10, 2),
-    defaultValue: 0,
-  },
-  total_amount: {
-    type: DataTypes.DECIMAL(10, 2),
-    allowNull: false,
+    type: DataTypes.INTEGER,
+    defaultValue: 0
   },
   paid: {
     type: DataTypes.BOOLEAN,
-    defaultValue: false,
+    defaultValue: false
   },
   paid_at: {
     type: DataTypes.DATE,
-    allowNull: true,
+    allowNull: true
+  },
+  notes: {
+    type: DataTypes.TEXT,
+    allowNull: true
   }
 });
 

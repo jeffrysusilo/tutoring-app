@@ -2,6 +2,8 @@ const { Op } = require('sequelize');
 const dayjs = require('dayjs');
 const Session = require('../models/Session');
 const SessionStudent = require('../models/SessionStudent');
+const Invoice = require('../models/Invoice');
+const Student = require('../models/Student');
 
 // Waktu slot yang tersedia
 const AVAILABLE_TIME_SLOTS = ['10.00', '13.00', '15.00', '18.00'];
@@ -161,64 +163,73 @@ const daysMap = {
 
 // POST /sessions/recurring
 exports.createRecurringSessions = async (req, res) => {
-  const { studentIds, tutorId, daysOfWeek, time, startDate, endDate, class_type: classType } = req.body;
+  const { studentId, tutorId, daysOfWeek, time, startDate, class_type: classType } = req.body;
   const createdSessions = [];
 
   try {
-    const dayjs = require('dayjs');
-    const daysMap = {
-      Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3,
-      Thursday: 4, Friday: 5, Saturday: 6
-    };
+    // Ambil total credit dari invoice terakhir yang belum habis
+    const invoice = await Invoice.findOne({
+      where: {
+        studentId,
+        paid: true
+      },
+      order: [['createdAt', 'DESC']]
+    });
 
-    const targetDays = daysOfWeek.map(d => daysMap[d]);
+    if (!invoice) {
+      return res.status(400).json({ error: 'Student belum memiliki invoice aktif' });
+    }
+
+    // Hitung jumlah sesi yang sudah digunakan
+    const usedCount = await Session.count({
+      where: {
+        studentId,
+        is_recurring: true,
+        status: {
+          [Op.in]: ['scheduled', 'completed', 'missed']
+        }
+      }
+    });
+
+    const remainingQuota = invoice.credit - usedCount;
+
+    if (remainingQuota <= 0) {
+      return res.status(400).json({ error: 'Kuota sesi sudah habis, silakan extend invoice' });
+    }
+
     let current = dayjs(startDate);
-    const end = dayjs(endDate);
+    const targetDays = daysOfWeek.map(d => daysMap[d]);
 
-    while (current.isBefore(end) || current.isSame(end, 'day')) {
-      const day = current.day(); // 0-6
+    while (createdSessions.length < remainingQuota) {
+      const day = current.day();
       if (targetDays.includes(day)) {
-        const dateStr = current.format('YYYY-MM-DD');
-
-        // Cek konflik per siswa dan tutor
+        // Cek bentrok
         const conflict = await Session.findOne({
           where: {
-            date: dateStr,
+            date: current.format('YYYY-MM-DD'),
             time,
-            tutorId
-          },
-          include: [
-            {
-              model: Student,
-              where: {
-                id: {
-                  [Op.in]: studentIds
-                }
-              }
-            }
-          ]
+            [Op.or]: [{ studentId }, { tutorId }]
+          }
         });
 
         if (!conflict) {
           const session = await Session.create({
+            studentId,
             tutorId,
-            class_type: classType,
-            date: dateStr,
+            date: current.format('YYYY-MM-DD'),
             time,
+            class_type: classType,
             is_recurring: true
           });
 
-          // Tambahkan semua siswa ke session
-          await session.addStudents(studentIds);
           createdSessions.push(session);
         }
       }
-
       current = current.add(1, 'day');
     }
 
     res.json({
-      message: `${createdSessions.length} sesi berhasil dibuat`,
+      message: `${createdSessions.length} sesi berhasil dibuat berdasarkan kuota`,
       sessions: createdSessions.map(s => ({
         date: s.date,
         time: s.time
@@ -306,5 +317,55 @@ exports.reportSession = async (req, res) => {
     res.status(500).json({ error: 'Gagal memperbarui laporan sesi' });
   }
 };
+
+const Session = require('../models/Session');
+const Invoice = require('../models/Invoice');
+const Student = require('../models/Student');
+
+exports.updateSessionStatus = async (req, res) => {
+  try {
+    const { status, notes } = req.body;
+
+    const session = await Session.findByPk(req.params.id, {
+      include: ['Students']
+    });
+
+    if (!session) {
+      return res.status(404).json({ error: 'Session tidak ditemukan' });
+    }
+
+    const oldStatus = session.status;
+
+    // Update status dan notes
+    await session.update({ status, notes });
+
+    const shouldDeduct =
+      ['completed', 'missed'].includes(status) &&
+      !['completed', 'missed'].includes(oldStatus);
+
+    if (shouldDeduct) {
+      for (const student of session.Students) {
+        const invoice = await Invoice.findOne({
+          where: {
+            studentId: student.id,
+            paid: true
+          },
+          order: [['createdAt', 'DESC']]
+        });
+
+        if (invoice && invoice.credit > 0) {
+          invoice.credit -= 1;
+          await invoice.save();
+        }
+      }
+    }
+
+    res.json({ message: 'Status sesi diperbarui', session });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Gagal memperbarui status sesi' });
+  }
+};
+
 
 

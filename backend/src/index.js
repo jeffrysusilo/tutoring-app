@@ -12,10 +12,14 @@ app.use(express.json());
 const sessionRoutes = require('./routes/sessions');
 const studentRoutes = require('./routes/students');
 const tutorRoutes = require('./routes/tutors');
+const invoiceRoutes = require('./routes/invoices');
+const creditRoutes = require('./routes/credits');
 
 app.use('/sessions', sessionRoutes);
 app.use('/students', studentRoutes);
 app.use('/tutors', tutorRoutes);
+app.use('/invoices', invoiceRoutes);
+app.use('/credits', creditRoutes);
 
 app.get('/', (req, res) => {
   res.send('API berjalan 🚀');
