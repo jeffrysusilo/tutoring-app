@@ -4,6 +4,9 @@ const Session = require('../models/Session');
 const SessionStudent = require('../models/SessionStudent');
 const Invoice = require('../models/Invoice');
 const Student = require('../models/Student');
+const Session = require('../models/Session');
+const Invoice = require('../models/Invoice');
+const Student = require('../models/Student');
 
 // Waktu slot yang tersedia
 const AVAILABLE_TIME_SLOTS = ['10.00', '13.00', '15.00', '18.00'];
@@ -71,6 +74,7 @@ exports.deleteSession = async (req, res) => {
 };
 
 // RESCHEDULE
+// PUT reschedule session
 exports.rescheduleSession = async (req, res) => {
   try {
     const { date, time } = req.body;
@@ -78,10 +82,13 @@ exports.rescheduleSession = async (req, res) => {
 
     if (!session) return res.status(404).json({ error: 'Sesi tidak ditemukan' });
 
+    if (session.status !== 'scheduled') {
+      return res.status(400).json({ error: 'Hanya sesi yang berstatus scheduled yang dapat di-reschedule' });
+    }
+
     session.date = date;
     session.time = time;
     session.status = 'rescheduled';
-    session.tutorId = tutorId;
     await session.save();
 
     res.json(session);
@@ -89,6 +96,7 @@ exports.rescheduleSession = async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 };
+
 
 // CEK SLOT KOSONG DI HARI TERTENTU
 exports.getAvailableSlots = async (req, res) => {
@@ -318,9 +326,6 @@ exports.reportSession = async (req, res) => {
   }
 };
 
-const Session = require('../models/Session');
-const Invoice = require('../models/Invoice');
-const Student = require('../models/Student');
 
 exports.updateSessionStatus = async (req, res) => {
   try {

@@ -14,12 +14,16 @@ const studentRoutes = require('./routes/students');
 const tutorRoutes = require('./routes/tutors');
 const invoiceRoutes = require('./routes/invoices');
 const creditRoutes = require('./routes/credits');
+const tutorPayrollRoutes = require('./routes/tutorPayroll');
+const cashflowRoutes = require('./routes/cashflow');
 
 app.use('/sessions', sessionRoutes);
 app.use('/students', studentRoutes);
 app.use('/tutors', tutorRoutes);
 app.use('/invoices', invoiceRoutes);
 app.use('/credits', creditRoutes);
+app.use('/tutor-payrolls', tutorPayrollRoutes);
+app.use('/cashflow', cashflowRoutes);
 
 app.get('/', (req, res) => {
   res.send('API berjalan 🚀');

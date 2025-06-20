@@ -3,6 +3,8 @@ const sequelize = require('../config/database');
 const Student = require('./Student');
 const Tutor = require('./Tutor');
 const SessionStudent = require('./SessionStudent');
+const TutorPayroll = require('./TutorPayroll');
+const PayrollSession = require('./PayrollSession');
 
 const Session = sequelize.define('Session', {
   date: {
@@ -46,5 +48,14 @@ Student.belongsToMany(Session, {
 // ✅ Relasi one-to-many untuk Tutor (boleh tetap)
 Session.belongsTo(Tutor, { foreignKey: 'tutorId' });
 Tutor.hasMany(Session, { foreignKey: 'tutorId' });
+
+Session.belongsToMany(TutorPayroll, {
+  through: PayrollSession,
+  foreignKey: 'sessionId',
+});
+TutorPayroll.belongsToMany(Session, {
+  through: PayrollSession,
+  foreignKey: 'payrollId',
+});
 
 module.exports = Session;
