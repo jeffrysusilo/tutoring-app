@@ -16,7 +16,15 @@ const invoiceRoutes = require('./routes/invoices');
 const creditRoutes = require('./routes/credits');
 const tutorPayrollRoutes = require('./routes/tutorPayroll');
 const cashflowRoutes = require('./routes/cashflow');
+const cors = require('cors');
 
+// app.use(cors({
+//   origin: process.env.CORS_ORIGIN || '*', // Ganti dengan URL frontend jika ada
+//   methods: ['GET', 'POST', 'PUT', 'DELETE'],
+//   allowedHeaders: ['Content-Type', 'Authorization']
+// }));
+
+app.use(cors());
 app.use('/sessions', sessionRoutes);
 app.use('/students', studentRoutes);
 app.use('/tutors', tutorRoutes);

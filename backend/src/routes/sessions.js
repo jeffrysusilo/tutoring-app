@@ -20,8 +20,8 @@ router.post('/recurring', sessionController.createRecurringSessions);
 router.delete('/recurring', sessionController.deleteRecurringSessions);
 
 // Report
-router.put('/:id/laporan', sessionController.updateLaporanSession);
+router.put('/:id/laporan', sessionController.updateSessionStatus);
 
-router.put('/:id/status', updateSessionStatus);
+// router.put('/:id/status', updateSessionStatus);
 
 module.exports = router;
